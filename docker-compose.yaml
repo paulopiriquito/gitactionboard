@@ -1,0 +1,12 @@
+version: "3.9"
+name: git-actions-board
+services:
+  gitactionsboard-app:
+    image: paulopiriquito/git-actions-board:latest
+    pull_policy: build
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: git-actions-board-app
+    ports:
+      - "9091:8080"

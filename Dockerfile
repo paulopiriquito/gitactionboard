@@ -1,42 +1,30 @@
-FROM amazoncorretto:21-alpine AS corretto-deps
-
-COPY ./backend/build/libs/gitactionboard.jar /app/
-
-RUN unzip /app/gitactionboard.jar -d temp &&  \
-    jdeps \
-      --print-module-deps \
-      --ignore-missing-deps \
-      --recursive \
-      --multi-release 17 \
-      --class-path="./temp/BOOT-INF/lib/*" \
-      --module-path="./temp/BOOT-INF/lib/*" \
-      /app/gitactionboard.jar > /modules.txt
-
-FROM amazoncorretto:21-alpine AS corretto-jdk
-
-COPY --from=corretto-deps /modules.txt /modules.txt
-
-# hadolint ignore=DL3018
-RUN apk add --no-cache binutils && \
-    jlink \
-         --verbose \
-         --add-modules "$(cat /modules.txt),jdk.crypto.ec,jdk.crypto.cryptoki,jdk.management" \
-         --strip-debug \
-         --no-man-pages \
-         --no-header-files \
-         --compress=2 \
-         --output /jre
-
-FROM alpine:3.19.0
-ENV JAVA_HOME=/jre
-ENV PATH="${JAVA_HOME}/bin:${PATH}"
-
-RUN apk upgrade libssl3 libcrypto3
-
-COPY --from=corretto-jdk /jre $JAVA_HOME
-
-EXPOSE 8080
-COPY ./backend/build/libs/gitactionboard.jar /app/
+FROM node:20.10-alpine as build-frontend
 WORKDIR /app
 
+COPY frontend/package.json frontend/yarn.lock ./
+RUN yarn
+
+COPY ./frontend .
+RUN yarn build
+
+FROM gradle:8.5.0-jdk21 as build-backend
+WORKDIR /app
+
+COPY ./backend/src ./src
+COPY ./backend/gradle ./gradle
+COPY ./backend/build.gradle ./build.gradle
+COPY ./backend/settings.gradle ./settings.gradle
+COPY ./backend/lombok.config ./lombok.config
+
+COPY --from=build-frontend /app/dist ./src/main/resources/static
+
+RUN gradle clean bootJar --no-daemon --stacktrace
+
+FROM eclipse-temurin:21-jre-alpine
+WORKDIR /app
+
+RUN apk upgrade libssl3 libcrypto3
+COPY --from=build-backend /app/build/libs/gitactionboard.jar ./
+
+EXPOSE 8080
 CMD ["java", "-jar", "gitactionboard.jar"]
