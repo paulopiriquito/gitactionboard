@@ -16,6 +16,6 @@ public class VersionConfig {
     return applicationContext.getBeansWithAnnotation(SpringBootApplication.class).values().stream()
         .findFirst()
         .flatMap(es -> Optional.ofNullable(es.getClass().getPackage().getImplementationVersion()))
-        .orElse("unknown");
+        .orElse("1.0.3");
   }
 }

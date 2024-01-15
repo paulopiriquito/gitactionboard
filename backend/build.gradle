@@ -41,6 +41,7 @@ dependencies {
     implementation "org.springframework.boot:spring-boot-starter-cache"
     implementation "org.springframework.boot:spring-boot-starter-actuator"
     implementation "org.springframework.boot:spring-boot-starter-oauth2-client"
+    implementation 'com.squareup.okhttp3:okhttp:4.9.3'
     implementation "com.fasterxml.uuid:java-uuid-generator:${javaUuidGeneratorVersion}"
     implementation "net.logstash.logback:logstash-logback-encoder:${logstashVersion}"
     implementation "com.github.ben-manes.caffeine:caffeine:${caffeineVersion}"

@@ -2,6 +2,7 @@ package de.otto.platform.gitactionboard.adapters.service;
 
 import static org.springframework.http.HttpHeaders.AUTHORIZATION;
 
+import java.time.Duration;
 import java.util.Optional;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.boot.web.client.RestTemplateBuilder;
@@ -19,7 +20,9 @@ public class ApiService {
       @Qualifier("ownerName") String ownerName,
       @Qualifier("authToken") String authToken) {
     this.restTemplateBuilder =
-        restTemplateBuilder.rootUri(String.format("%s/repos/%s", baseUri, ownerName));
+        restTemplateBuilder.rootUri(String.format("%s/repos/%s", baseUri, ownerName))
+            .setConnectTimeout(Duration.ofSeconds(10))
+            .setReadTimeout(Duration.ofSeconds(5));
     this.authToken = authToken;
   }
 
